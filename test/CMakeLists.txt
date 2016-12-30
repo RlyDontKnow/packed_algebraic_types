@@ -1,0 +1,1 @@
+make_simple_test(SafeInt operators safe_int_operators)
