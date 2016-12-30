@@ -8,7 +8,7 @@ project(packed_algebraic_types CXX)
 set(TESTSCRIPT "" CACHE PATH "Optionally execute tests through a script (e.g. to test on a target, run valgrind on them, etc.)")
 
 if(MSVC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /wd4127 /wd4510 /wd4512 /wd4610")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /wd4127 /wd4510 /wd4512 /wd4610 /wd4814")
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -DWIN32_LEAN_AND_MEAN -DNOMINMAX)
 else(MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wno-unknown-pragmas -Wno-missing-field-initializers")
