@@ -1,1 +1,2 @@
 make_simple_test(SafeInt operators safe_int_operators)
+make_simple_test(Packer pack packer)

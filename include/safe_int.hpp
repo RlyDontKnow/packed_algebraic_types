@@ -2,6 +2,8 @@
 #ifndef RDK_962F9BEDF2C749EDAD5BFB085F2951F7
 #define RDK_962F9BEDF2C749EDAD5BFB085F2951F7
 
+#include "packer.hpp"
+
 #include <cstdint>
 #include <limits>
 #include <stdexcept>
@@ -496,6 +498,59 @@ constexpr auto operator-(T lhs, U rhs) noexcept
   return detail::sub<T, U>::call(lhs, rhs);
 }
 
+template<typename T, T min, T max>
+struct is_packable<safe<T, min, max>> : std::true_type
+{
+};
+
+namespace detail
+{
+  // @@@FIXME: signed overflow when max-min >= intmax_t max
+  template<typename T, T min, T max>
+  struct signed_packable_traits
+  {
+    static constexpr uintmax_t packed_size = (min != max) ? (1U + log2_v<(static_cast<intmax_t>(max) - static_cast<intmax_t>(min))>) : 0U;
+    using value_type = safe<T, min, max>;
+    using packed_type = bitstream<packed_size>;
+
+    static constexpr packed_type pack(value_type const &v)
+    {
+      return{static_cast<uintmax_t>(static_cast<intmax_t>(static_cast<T>(v)) - static_cast<intmax_t>(min))};
+    }
+
+    static constexpr value_type unpack(packed_type const &v)
+    {
+      return value_type{static_cast<T>(static_cast<intmax_t>(v.to_ullong()) + static_cast<intmax_t>(min)), unchecked_construct};
+    }
+  };
+
+  template<typename T, T min, T max>
+  struct unsigned_packable_traits
+  {
+    static constexpr uintmax_t packed_size = (min != max) ? (1U + log2_v<(max - min)>) : 0U;
+    using value_type = safe<T, min, max>;
+    using packed_type = bitstream<packed_size>;
+
+    static constexpr packed_type pack(value_type const &v)
+    {
+      return{static_cast<T>(v) - min};
+    }
+
+    static constexpr value_type unpack(packed_type const &v)
+    {
+      return value_type{static_cast<T>(v.to_ullong()) + static_cast<T>(min), unchecked_construct};
+    }
+  };
+}
+
+template<typename T, T min, T max>
+struct packable_traits<safe<T, min, max>>
+  : std::conditional_t<std::is_signed_v<T>
+  , detail::signed_packable_traits<T, min, max>
+  , detail::unsigned_packable_traits<T, min, max>>
+{
+};
+
 } // namespace rdk
 
 namespace std
@@ -529,4 +584,4 @@ struct numeric_limits<::rdk::safe<T, minV, maxV>>
 
 } // namespace std
 
-#endif
+#endif // !RDK_962F9BEDF2C749EDAD5BFB085F2951F7
